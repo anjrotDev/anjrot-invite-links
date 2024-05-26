@@ -1,0 +1,102 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "anjrot-invite-links/custom-form",
+	"version": "1.0.0",
+	"title": "Custom Form",
+	"category": "widgets",
+	"icon": "forms",
+	"description": "A Simple Custom Form",
+	"example": {},
+	"attributes": {
+    "inputs": {
+      "type": "array",
+      "default": []
+    },
+    "headingText": {
+      "type": "string",
+      "default": "Anjrot Forms - !"
+    },
+    "textAlign": {
+      "type": "string",
+      "default": "left"
+    },
+    "textColor": {
+      "type": "string"
+    },
+    "backgroundColor": {
+      "type": "string"
+    },
+		"borderWidth": {
+      "type": "number",
+      "default": 0
+    },
+    "borderRadius": {
+      "type": "number",
+      "default": 0
+    },
+		"padding": {
+      "type": "number",
+      "default": 10
+    },
+		"buttonText": {
+      "type": "string",
+      "default": "Submit"
+    },
+    "buttonTextColor": {
+      "type": "string",
+      "default": "#fff"
+    },
+    "buttonBackgroundColor": {
+      "type": "string",
+      "default": "#000"
+    },
+    "buttonBorderRadius": {
+      "type": "number",
+      "default": 0
+    },
+    "buttonFullWidth": {
+      "type": "boolean",
+      "default": true
+    },
+		"buttonBorderColor": {
+			"type": "string",
+			"default": "#000"
+		},
+		"buttonBorderWidth": {
+			"type": "number",
+			"default": 1
+		},
+		"buttonWidth": {
+			"type": "string",
+			"default": "auto"
+		},
+		"buttonPadding": {
+			"type": "number",
+			"default": 0
+		},
+		"submitAction": {
+      "type": "string",
+      "default": "showMessage"
+    },
+    "redirectUrl": {
+      "type": "string",
+      "default": ""
+    },
+    "confirmationMessage": {
+      "type": "string",
+      "default": "Thank you for your submission!"
+    }
+  },
+	"supports": {
+		"html": false
+	},
+	"keywords": ["form", "input"],
+	"textdomain": "custom-form",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "file:./style-index.css",
+	"script": "file:./index.js",
+	"viewScript": "file:./view.js",
+	"allowedBlocks": ["core/columns", "anjrot-invite-links/text-input", "anjrot-invite-links/email-input"]
+}

@@ -1,0 +1,46 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "anjrot-invite-links/text-input",
+	"version": "1.0.0",
+	"title": "Text Input",
+	"category": "widgets",
+	"icon": "text",
+	"description": "Input Text for the Custom Form",
+	"example": {},
+	"supports": {
+		"html": false
+	},
+	"attributes": {
+    "label": {
+      "type": "string",
+      "default": ""
+    },
+    "placeholder": {
+      "type": "string",
+      "default": "Enter text..."
+    },
+    "name": {
+      "type": "string",
+      "default": ""
+    },
+    "required": {
+      "type": "boolean",
+      "default": false
+    },
+		"fullWidth": {
+      "type": "boolean",
+      "default": false
+    },
+    "width": {
+      "type": "string",
+      "default": "100%"
+    }
+  },
+	"keywords": ["form", "input"],
+	"textdomain": "text-input",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "file:./style-index.css",
+	"script": "file:./index.js"
+}
