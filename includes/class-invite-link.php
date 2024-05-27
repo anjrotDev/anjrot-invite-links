@@ -1,4 +1,6 @@
 <?php
+include_once plugin_dir_path( __FILE__ ) . 'database-functions.php';
+
 class WP_Invite_Link {
     public function __construct() {
         add_action( 'admin_menu', array( $this, 'create_admin_menu' ) );
@@ -6,19 +8,7 @@ class WP_Invite_Link {
     }
 
     public static function activate() {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'invite_links';
-        $charset_collate = $wpdb->get_charset_collate();
-
-        $sql = "CREATE TABLE $table_name (
-            id mediumint(9) NOT NULL AUTO_INCREMENT,
-            uuid varchar(255) NOT NULL,
-            used tinyint(1) DEFAULT 0 NOT NULL,
-            PRIMARY KEY (id)
-        ) $charset_collate;";
-
-        require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-        dbDelta( $sql );
+        create_tables();
     }
 
     public function create_admin_menu() {
@@ -39,6 +29,15 @@ class WP_Invite_Link {
             'configure-invite-links',
             array( $this, 'configure_invite_links_page' )
         );
+
+        add_submenu_page(
+            'invite-links',
+            'Protected Pages',
+            'Protected Pages',
+            'manage_options',
+            'protected-pages',
+            array( $this, 'protected_pages_page' )
+        );
     }
 
     public function list_invite_links_page() {
@@ -47,6 +46,10 @@ class WP_Invite_Link {
 
     public function configure_invite_links_page() {
         include plugin_dir_path( __FILE__ ) . '../admin/configure-invite-links.php';
+    }
+
+    public function protected_pages_page() {
+        include plugin_dir_path( __FILE__ ) . '../admin/protected-pages.php';
     }
 
     public function handle_protection() {
@@ -60,16 +63,21 @@ class WP_Invite_Link {
     private function handle_invite_link() {
         $uuid = sanitize_text_field( $_GET['invite'] );
         global $wpdb;
-        $table_name = $wpdb->prefix . 'invite_links';
+        $table_name_links = $wpdb->prefix . 'invite_links';
 
         $link = $wpdb->get_row( $wpdb->prepare(
-            "SELECT * FROM $table_name WHERE uuid = %s AND used = 0",
+            "SELECT * FROM $table_name_links WHERE uuid = %s AND used = 0 AND (uses_remaining > 0 OR uses_remaining = -1)",
             $uuid
         ));
 
         if ( $link ) {
-            add_action( 'wp_footer', function() use ( $wpdb, $table_name, $uuid ) {
-                $wpdb->update( $table_name, array( 'used' => 1 ), array( 'uuid' => $uuid ) );
+            add_action( 'wp_footer', function() use ( $wpdb, $table_name_links, $uuid, $link ) {
+                if ($link->uses_remaining > 0) {
+                    $wpdb->update( $table_name_links, array( 'uses_remaining' => $link->uses_remaining - 1 ), array( 'uuid' => $uuid ) );
+                }
+                if ($link->uses_remaining == 1) {
+                    $wpdb->update( $table_name_links, array( 'used' => 1 ), array( 'uuid' => $uuid ) );
+                }
             } );
             return; // Dejar que la página se renderice normalmente
         } else {
@@ -79,18 +87,29 @@ class WP_Invite_Link {
     }
 
     private function protect_page() {
+        global $wpdb;
+        $table_name_pages = $wpdb->prefix . 'protected_pages';
         $protected_page = get_option( 'anjrot_protected_page' );
+
         if ( is_page( $protected_page ) ) {
-            wp_redirect( home_url() );
-            exit;
+            $page_id = get_queried_object_id();
+            $protected = $wpdb->get_var( $wpdb->prepare(
+                "SELECT protected FROM $table_name_pages WHERE page_id = %d",
+                $page_id
+            ));
+
+            if ( $protected ) {
+                wp_redirect( home_url() );
+                exit;
+            }
         }
     }
     
     private function is_valid_invite( $uuid ) {
         global $wpdb;
-        $table_name = $wpdb->prefix . 'invite_links';
+        $table_name_links = $wpdb->prefix . 'invite_links';
         $link = $wpdb->get_row( $wpdb->prepare(
-            "SELECT * FROM $table_name WHERE uuid = %s AND used = 0",
+            "SELECT * FROM $table_name_links WHERE uuid = %s AND used = 0 AND (uses_remaining > 0 OR uses_remaining = -1)",
             $uuid
         ));
         return $link ? true : false;

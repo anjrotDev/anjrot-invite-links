@@ -5,13 +5,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 global $wpdb;
-$table_name = $wpdb->prefix . 'invite_links';
+$table_name_links = $wpdb->prefix . 'invite_links';
+$table_name_pages = $wpdb->prefix . 'protected_pages';
 
 // Guardar la página protegida al generar un enlace de invitación
 if ( isset( $_POST['generate_link'] ) ) {
-    update_option( 'anjrot_protected_page', $_POST['protected_page'] );
+    $page_id = $_POST['protected_page'];
+    $wpdb->replace( $table_name_pages, array( 'page_id' => $page_id, 'protected' => 1 ) );
+
     $uuid = wp_generate_uuid4();
-    $wpdb->insert( $table_name, array( 'uuid' => $uuid ) );
+    $wpdb->insert( $table_name_links, array( 'uuid' => $uuid ) );
 }
 
 $pages = get_pages();
