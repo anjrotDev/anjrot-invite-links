@@ -2,7 +2,7 @@
 class WP_Invite_Link {
     public function __construct() {
         add_action( 'admin_menu', array( $this, 'create_admin_menu' ) );
-        add_action( 'template_redirect', array( $this, 'handle_invite_link' ) );
+        add_action( 'template_redirect', array( $this, 'handle_protection' ) );
     }
 
     public static function activate() {
@@ -27,35 +27,72 @@ class WP_Invite_Link {
             'Invite Links',
             'manage_options',
             'invite-links',
-            array( $this, 'admin_page_content' ),
+            array( $this, 'list_invite_links_page' ),
             'dashicons-admin-links'
+        );
+
+        add_submenu_page(
+            'invite-links',
+            'Configure Invite Links',
+            'Configure',
+            'manage_options',
+            'configure-invite-links',
+            array( $this, 'configure_invite_links_page' )
         );
     }
 
-    public function admin_page_content() {
-        if ( isset( $_GET['page'] ) && $_GET['page'] == 'invite-links' ) {
-            include plugin_dir_path( __FILE__ ) . '../admin/admin-page.php';
+    public function list_invite_links_page() {
+        include plugin_dir_path( __FILE__ ) . '../admin/list-invite-links.php';
+    }
+
+    public function configure_invite_links_page() {
+        include plugin_dir_path( __FILE__ ) . '../admin/configure-invite-links.php';
+    }
+
+    public function handle_protection() {
+        if ( isset( $_GET['invite'] ) ) {
+            $this->handle_invite_link();
+        } else {
+            $this->protect_page();
         }
     }
 
-    public function handle_invite_link() {
-        if ( isset( $_GET['invite'] ) ) {
-            $uuid = sanitize_text_field( $_GET['invite'] );
-            global $wpdb;
-            $table_name = $wpdb->prefix . 'invite_links';
+    private function handle_invite_link() {
+        $uuid = sanitize_text_field( $_GET['invite'] );
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'invite_links';
 
-            $link = $wpdb->get_row( $wpdb->prepare(
-                "SELECT * FROM $table_name WHERE uuid = %s AND used = 0",
-                $uuid
-            ));
+        $link = $wpdb->get_row( $wpdb->prepare(
+            "SELECT * FROM $table_name WHERE uuid = %s AND used = 0",
+            $uuid
+        ));
 
-            if ( $link ) {
-                include plugin_dir_path( __FILE__ ) . '../templates/form-template.php';
-                exit;
-            } else {
-                wp_redirect( home_url() );
-                exit;
-            }
+        if ( $link ) {
+            add_action( 'wp_footer', function() use ( $wpdb, $table_name, $uuid ) {
+                $wpdb->update( $table_name, array( 'used' => 1 ), array( 'uuid' => $uuid ) );
+            } );
+            return; // Dejar que la página se renderice normalmente
+        } else {
+            wp_redirect( home_url() );
+            exit;
         }
+    }
+
+    private function protect_page() {
+        $protected_page = get_option( 'anjrot_protected_page' );
+        if ( is_page( $protected_page ) ) {
+            wp_redirect( home_url() );
+            exit;
+        }
+    }
+    
+    private function is_valid_invite( $uuid ) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'invite_links';
+        $link = $wpdb->get_row( $wpdb->prepare(
+            "SELECT * FROM $table_name WHERE uuid = %s AND used = 0",
+            $uuid
+        ));
+        return $link ? true : false;
     }
 }
