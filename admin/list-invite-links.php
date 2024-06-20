@@ -17,6 +17,8 @@ $protected_page = get_option( 'anjrot_protected_page' );
             <tr>
                 <th>ID</th>
                 <th>Link</th>
+                <th>Uses Configured</th>
+                <th>Uses Remaining</th>
                 <th>Used</th>
             </tr>
         </thead>
@@ -24,7 +26,9 @@ $protected_page = get_option( 'anjrot_protected_page' );
             <?php foreach ( $links as $link ): ?>
                 <tr>
                     <td><?php echo $link->id; ?></td>
-                    <td><?php echo get_permalink( $protected_page ) . '?invite=' . $link->uuid; ?></td>
+                    <td><?php echo home_url( '/'. get_page_uri( $link->page_id ).'?invite=' . $link->uuid); ?></td>
+                    <td><?php echo $link->uses_quantity == -1 ? 'Unlimited' : $link->uses_quantity; ?></td>
+                    <td><?php echo $link->uses_remaining == -1 ? 'Unlimited' : max(0, $link->uses_remaining); ?></td>
                     <td><?php echo $link->used ? 'Yes' : 'No'; ?></td>
                 </tr>
             <?php endforeach; ?>
