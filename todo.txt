@@ -1,0 +1,45 @@
+TODO List for Anjrot Invite Links Plugin:
+
+1. Implement API integration: [DONE]
+   - Create a function to send form data (name and email) to the specified API.
+   - Add error handling for API requests.
+   - Implement proper security measures for API communication (e.g., API key management).
+
+2. Update form submission logic: [DONE]
+   - Replace the TODO comment in form-template.php with the actual API call.
+   - Handle and display API response to the user.
+
+3. Add configuration options: [DONE]
+   - Create admin settings for API endpoint URL.
+   - Add option for API authentication method (if required).
+
+4. Implement data validation:
+   - Add more robust validation for form inputs before sending to API.
+
+5. Error logging:
+   - Set up error logging for failed API requests.
+
+6. Testing:
+   - Create unit tests for API integration function.
+   - Perform thorough testing of form submission and API communication.
+
+7. Documentation:
+   - Update plugin documentation to include information about API integration.
+   - Provide instructions for configuring API settings.
+
+8. Security audit:
+   - Conduct a security review of the entire plugin, focusing on data handling and API communication.
+
+9. Performance optimization:
+   - Consider implementing caching mechanisms for API responses if appropriate.
+
+10. Internationalization:
+    - Ensure all new strings are properly internationalized.
+
+11. Finalize and test dynamic form fields:
+    - Ensure that the Invite_Link class properly handles custom form fields.
+    - Test the rendering of dynamic form fields in the frontend.
+
+12. Enhance admin interface:
+    - Add UI for managing custom form fields per invite link.
+    - Improve the API settings page with better descriptions and potentially a test connection feature.

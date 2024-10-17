@@ -38,6 +38,9 @@ const Edit = (props) => {
 		submitAction,
 		redirectUrl,
 		confirmationMessage,
+		emailTo,
+		emailCc,
+		emailSubject,
 	} = attributes;
 
 	const blockProps = useBlockProps({
@@ -197,38 +200,41 @@ const Edit = (props) => {
 						/>
 					)}
 				</PanelBody>
-				<PanelBody title={__("Submit Action", "anjrot-invite-links")}>
+				<PanelBody title={__("Email Settings", "anjrot-invite-links")}>
+					<TextControl
+						label={__("To Email", "anjrot-invite-links")}
+						value={emailTo}
+						onChange={(value) => setAttributes({ emailTo: value })}
+					/>
+					<TextControl
+						label={__("CC Email", "anjrot-invite-links")}
+						value={emailCc}
+						onChange={(value) => setAttributes({ emailCc: value })}
+					/>
+					<TextControl
+						label={__("Email Subject", "anjrot-invite-links")}
+						value={emailSubject}
+						onChange={(value) => setAttributes({ emailSubject: value })}
+					/>
 					<SelectControl
-						label={__("Action on Submit", "anjrot-invite-links")}
+						label={__("Submit Action", "anjrot-invite-links")}
 						value={submitAction}
 						options={[
 							{
-								label: __("Show Confirmation Message", "anjrot-invite-links"),
+								label: __("Send Email", "anjrot-invite-links"),
+								value: "sendEmail",
+							},
+							{
+								label: __("Show Message", "anjrot-invite-links"),
 								value: "showMessage",
 							},
 							{
-								label: __("Redirect to URL", "anjrot-invite-links"),
-								value: "redirect",
+								label: __("Send to API", "anjrot-invite-links"),
+								value: "sendToAPI",
 							},
 						]}
-						onChange={(newAction) => setAttributes({ submitAction: newAction })}
+						onChange={(value) => setAttributes({ submitAction: value })}
 					/>
-					{submitAction === "redirect" && (
-						<TextControl
-							label={__("Redirect URL", "anjrot-invite-links")}
-							value={redirectUrl}
-							onChange={(newUrl) => setAttributes({ redirectUrl: newUrl })}
-						/>
-					)}
-					{submitAction === "showMessage" && (
-						<TextControl
-							label={__("Confirmation Message", "anjrot-invite-links")}
-							value={confirmationMessage}
-							onChange={(newMessage) =>
-								setAttributes({ confirmationMessage: newMessage })
-							}
-						/>
-					)}
 				</PanelBody>
 			</InspectorControls>
 

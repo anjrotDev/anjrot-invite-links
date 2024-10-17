@@ -23,6 +23,9 @@ const Save = (props) => {
 		submitAction,
 		confirmationMessage,
 		redirectUrl,
+		emailTo,
+		emailCc,
+		emailSubject,
 	} = attributes;
 
 	const blockProps = useBlockProps.save({
@@ -56,6 +59,9 @@ const Save = (props) => {
 				data-submit-action={submitAction}
 				data-confirmation-message={confirmationMessage}
 				data-redirect-url={redirectUrl}
+				data-email-to={emailTo}
+				data-email-cc={emailCc}
+				data-email-subject={emailSubject}
 			>
 				<h2 style={{ textAlign, color: textColor }}>{headingText}</h2>
 				<InnerBlocks.Content />

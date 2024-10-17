@@ -12,34 +12,76 @@ $table_name_pages = $wpdb->prefix . 'protected_pages';
 if ( isset( $_POST['generate_link'] ) ) {
     $page_id = $_POST['protected_page'];
     $uses_remaining = isset($_POST['uses_remaining']) ? intval($_POST['uses_remaining']) : -1;
-    $wpdb->replace( $table_name_pages, array( 'page_id' => $page_id, 'protected' => 1 ) );
-
-    error_log('$_POST =>');
-    error_log(print_r($_POST, true));
+    $redirect_url = isset($_POST['redirect_url']) ? esc_url_raw($_POST['redirect_url']) : '';
+    
+    $wpdb->replace( 
+        $table_name_pages, 
+        array( 
+            'page_id' => $page_id, 
+            'protected' => 1
+        ) 
+    );
 
     $uuid = wp_generate_uuid4();
-    $wpdb->insert( $table_name_links, array( 'uuid' => $uuid, 'uses_remaining' => $uses_remaining, 'page_id' => $page_id, 'uses_quantity' =>  $uses_remaining ) );
+    $wpdb->insert( $table_name_links, array( 
+        'uuid' => $uuid, 
+        'uses_remaining' => $uses_remaining, 
+        'page_id' => $page_id, 
+        'uses_quantity' =>  $uses_remaining,
+        'redirect_url' => $redirect_url
+    ) );
+}
+
+// Actualizar la URL de redirección de un enlace específico
+if ( isset( $_POST['update_redirect'] ) ) {
+    $link_id = intval($_POST['link_id']);
+    $new_redirect_url = esc_url_raw($_POST['new_redirect_url']);
+    
+    $wpdb->update(
+        $table_name_links,
+        array('redirect_url' => $new_redirect_url),
+        array('id' => $link_id)
+    );
 }
 
 $pages = get_pages();
-$protected_page = get_option( 'anjrot_protected_page' );
-$links = $wpdb->get_results( "SELECT * FROM $table_name_links" );
+$protected_pages = $wpdb->get_results("SELECT * FROM $table_name_pages WHERE protected = 1");
+$links = $wpdb->get_results("SELECT * FROM $table_name_links");
 
 ?>
 
 <div class="wrap">
     <h1>Configure Invite Links</h1>
-    <form method="post">
-        <h2>Settings</h2>
-        <label for="protected_page">Protected Page:</label>
-        <select name="protected_page" id="protected_page">
-            <?php foreach ( $pages as $page ): ?>
-                <option value="<?php echo $page->ID; ?>" <?php selected( $protected_page, $page->ID ); ?>><?php echo $page->post_title; ?></option>
-            <?php endforeach; ?>
-        </select>
-        <label for="uses_remaining">Number of Uses (0 for unlimited):</label>
-        <input type="number" name="uses_remaining" id="uses_remaining" value="0" min="0">
-        <input type="submit" name="generate_link" class="button button-primary" value="Generate Invite Link">
+    
+    <form method="post" class="invite-link-form">
+        <h2>Generate New Invite Link</h2>
+        <table class="form-table">
+            <tr>
+                <th scope="row"><label for="protected_page">Page to Protect:</label></th>
+                <td>
+                    <select name="protected_page" id="protected_page">
+                        <?php foreach ( $pages as $page ): ?>
+                            <option value="<?php echo $page->ID; ?>"><?php echo $page->post_title; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row"><label for="uses_remaining">Number of Uses (0 for unlimited):</label></th>
+                <td>
+                    <input type="number" name="uses_remaining" id="uses_remaining" value="0" min="0">
+                </td>
+            </tr>
+            <tr>
+                <th scope="row"><label for="redirect_url">Custom Redirect URL (leave empty to use home page):</label></th>
+                <td>
+                    <input type="url" name="redirect_url" id="redirect_url" style="width: 100%;">
+                </td>
+            </tr>
+        </table>
+        <p class="submit">
+            <input type="submit" name="generate_link" class="button button-primary" value="Generate Invite Link">
+        </p>
     </form>
 
     <h2>Generated Links</h2>
@@ -48,24 +90,51 @@ $links = $wpdb->get_results( "SELECT * FROM $table_name_links" );
             <tr>
                 <th>ID</th>
                 <th>Link</th>
+                <th>Protected Page</th>
                 <th>Uses Configured</th>
                 <th>Uses Remaining</th>
                 <th>Used</th>
+                <th>Redirect URL</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
-            <?php foreach ( $links as $link ):
-                error_log('link =>');
-                error_log(print_r($link, true));
+            <?php foreach ( $links as $link ): 
+                $page_title = get_the_title($link->page_id);
                 ?>
                 <tr>
                     <td><?php echo $link->id; ?></td>
                     <td><?php echo home_url( '/'. get_page_uri( $link->page_id ).'?invite=' . $link->uuid); ?></td>
+                    <td><?php echo $page_title; ?></td>
                     <td><?php echo $link->uses_quantity == -1 ? 'Unlimited' : $link->uses_quantity; ?></td>
                     <td><?php echo $link->uses_remaining == -1 ? 'Unlimited' : max(0, $link->uses_remaining); ?></td>
                     <td><?php echo $link->used ? 'Yes' : 'No'; ?></td>
+                    <td><?php echo $link->redirect_url ? $link->redirect_url : 'Home Page'; ?></td>
+                    <td>
+                        <form method="post">
+                            <input type="hidden" name="link_id" value="<?php echo $link->id; ?>">
+                            <input type="url" name="new_redirect_url" value="<?php echo $link->redirect_url; ?>" style="width: 70%;">
+                            <input type="submit" name="update_redirect" class="button button-secondary" value="Update">
+                        </form>
+                    </td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
     </table>
 </div>
+
+<style>
+    .invite-link-form {
+        background: #fff;
+        border: 1px solid #ccd0d4;
+        padding: 20px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+    .invite-link-form h2 {
+        margin-top: 0;
+    }
+    .form-table th {
+        width: 200px;
+    }
+</style>

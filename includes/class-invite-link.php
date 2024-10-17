@@ -38,6 +38,15 @@ class WP_Invite_Link {
             'protected-pages',
             array( $this, 'protected_pages_page' )
         );
+
+        add_submenu_page(
+            'invite-links',
+            'API Settings',
+            'API Settings',
+            'manage_options',
+            'api-settings',
+            array( $this, 'api_settings_page' )
+        );
     }
 
     public function list_invite_links_page() {
@@ -52,6 +61,10 @@ class WP_Invite_Link {
         include plugin_dir_path( __FILE__ ) . '../admin/protected-pages.php';
     }
 
+    public function api_settings_page() {
+        include plugin_dir_path( __FILE__ ) . '../admin/api-settings.php';
+    }
+
     public function handle_protection() {
         if ( isset( $_GET['invite'] ) ) {
             $this->handle_invite_link();
@@ -61,76 +74,87 @@ class WP_Invite_Link {
     }
 
     private function handle_invite_link() {
-        error_log("handle_invite_link", 0);
         $uuid = sanitize_text_field( $_GET['invite'] );
-        global $wpdb;
-        $table_name_links = $wpdb->prefix . 'invite_links';
+        $current_page_id = get_the_ID();
 
-        $link = $wpdb->get_row( $wpdb->prepare(
-            "SELECT * FROM $table_name_links WHERE uuid = %s AND used = 0 AND (uses_remaining > 0 OR uses_remaining = -1)",
-            $uuid
-        ));
-
-        if ( $link ) {
-            add_action( 'wp_footer', function() use ( $wpdb, $table_name_links, $uuid, $link ) {
-                // Reducir el número de usos restantes si es mayor que 0
-                if ($link->uses_remaining > 0) {
-                    $wpdb->update( $table_name_links, array( 'uses_remaining' => $link->uses_remaining - 1 ), array( 'uuid' => $uuid ) );
-                }
-
-                // Marcar como usado si los usos restantes son 0
-                if ($link->uses_remaining == 1) {
-                    $wpdb->update( $table_name_links, array( 'used' => 1 ), array( 'uuid' => $uuid ) );
-                }
-            } );
+        if ( self::is_valid_invite($uuid, $current_page_id) ) {
+            add_action( 'wp_footer', function() use ($uuid) {
+                self::update_invite_usage($uuid);
+            });
             return; // Dejar que la página se renderice normalmente
         } else {
-            error_log("estoy en este else de handle_invite_link");
-            wp_redirect( home_url() );
-            exit;
+            $this->redirect_to_custom_or_home($uuid);
         }
     }
 
     private function protect_page() {
-        error_log("is Page protected");
-        global $wpdb;
-        $table_name_pages = $wpdb->prefix . 'protected_pages';
-        $page_id = get_the_ID();
+        $current_page_id = get_the_ID();
         
-        
-        $protected_page_query = $wpdb->get_results( "SELECT * FROM $table_name_pages WHERE page_id = $page_id" );
-
-        if (count($protected_page_query) == 0) return;
-        
-        $protected_page_id = $protected_page_query->page_id;
-        error_log(count($protected_page_query));
-        error_log('protected_page_id =>');
-        error_log(print_r($protected_page_query, true));
-
-        error_log("none!!!");
-        // error_log($post);
-        error_log("end none none!!!");
-        error_log(is_page($protected_page_id));
-        if ( is_page( $protected_page_id ) ) {
-            error_log("en el if!!!");
-            error_log(isset($_GET['invite']));
-            if ( !isset($_GET['invite']) || !$this->is_valid_invite(sanitize_text_field($_GET['invite'])) ) {
-                wp_redirect( home_url() );
-                exit;
+        if ( self::is_page_protected($current_page_id) ) {
+            if ( !isset($_GET['invite']) || !self::is_valid_invite(sanitize_text_field($_GET['invite']), $current_page_id) ) {
+                $this->redirect_to_custom_or_home(sanitize_text_field($_GET['invite'] ?? ''));
             }
-        }else{
-            error_log("no consiguio la pagina", 0);
-            return;
         }
     }
 
-    private function is_valid_invite( $uuid ) {
+    private function redirect_to_custom_or_home($uuid) {
         global $wpdb;
         $table_name_links = $wpdb->prefix . 'invite_links';
+        
         $link = $wpdb->get_row( $wpdb->prepare(
-            "SELECT * FROM $table_name_links WHERE uuid = %s AND used = 0 AND (uses_remaining > 0 OR uses_remaining = -1)",
+            "SELECT redirect_url FROM $table_name_links WHERE uuid = %s",
             $uuid
         ));
+
+        if ($link && !empty($link->redirect_url)) {
+            wp_redirect($link->redirect_url);
+        } else {
+            wp_redirect(home_url());
+        }
+        exit;
+    }
+
+    public static function is_page_protected($page_id) {
+        global $wpdb;
+        $table_name_pages = $wpdb->prefix . 'protected_pages';
+        
+        $protected = $wpdb->get_var( $wpdb->prepare(
+            "SELECT protected FROM $table_name_pages WHERE page_id = %d",
+            $page_id
+        ));
+
+        return $protected == 1;
+    }
+
+    public static function is_valid_invite($uuid, $page_id) {
+        global $wpdb;
+        $table_name_links = $wpdb->prefix . 'invite_links';
+        
+        $link = $wpdb->get_row( $wpdb->prepare(
+            "SELECT * FROM $table_name_links WHERE uuid = %s AND page_id = %d AND (uses_remaining > 0 OR uses_remaining = -1)",
+            $uuid,
+            $page_id
+        ));
+
         return $link ? true : false;
+    }
+
+    private static function update_invite_usage($uuid) {
+        global $wpdb;
+        $table_name_links = $wpdb->prefix . 'invite_links';
+
+        $wpdb->query( $wpdb->prepare(
+            "UPDATE $table_name_links 
+            SET uses_remaining = CASE 
+                WHEN uses_remaining > 0 THEN uses_remaining - 1 
+                ELSE uses_remaining 
+            END,
+            used = CASE 
+                WHEN uses_remaining = 1 THEN 1 
+                ELSE used 
+            END
+            WHERE uuid = %s",
+            $uuid
+        ));
     }
 }

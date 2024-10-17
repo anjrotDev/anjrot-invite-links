@@ -1,0 +1,36 @@
+Futuras funcionalidades para el plugin Anjrot Invite Links:
+
+1. Añadir más tipos de campos al formulario:
+   - Área de texto
+   - Casillas de verificación
+   - Botones de radio
+   - Selector de fecha
+   - Carga de archivos
+
+2. Implementar validación de formularios del lado del cliente para mejorar la experiencia del usuario.
+
+3. Añadir la opción de enviar una copia del correo electrónico al remitente del formulario.
+
+4. Crear una página de configuración global para el plugin donde se puedan establecer valores predeterminados para los correos electrónicos.
+
+5. Implementar un sistema de plantillas para los correos electrónicos enviados.
+
+6. Añadir la capacidad de guardar las presentaciones del formulario en la base de datos además de enviarlas por correo electrónico.
+
+7. Integración con servicios de marketing por correo electrónico (por ejemplo, Mailchimp, SendGrid).
+
+8. Añadir la opción de crear formularios de múltiples pasos.
+
+9. Implementar un sistema de notificaciones para administradores cuando se reciban nuevas presentaciones de formularios.
+
+10. Añadir soporte para reCAPTCHA para prevenir spam.
+
+11. Crear un panel de análisis para ver estadísticas sobre las presentaciones de formularios.
+
+12. Implementar la funcionalidad de exportar las presentaciones de formularios a CSV o Excel.
+
+13. Añadir la opción de programar la expiración de los enlaces de invitación.
+
+14. Implementar un sistema de roles y permisos para el acceso a diferentes partes del plugin.
+
+15. Añadir soporte para formularios condicionales (mostrar/ocultar campos basados en las respuestas del usuario).
