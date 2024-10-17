@@ -15,7 +15,8 @@ function create_tables() {
       used tinyint(1) DEFAULT 0 NOT NULL,
       uses_remaining int DEFAULT -1 NOT NULL,
       page_id bigint(20) NOT NULL,
-      uses_quantity bigint(20) DEFAULT -1 NOT NULL, 
+      uses_quantity bigint(20) DEFAULT -1 NOT NULL,
+      redirect_url varchar(255) DEFAULT '' NOT NULL,
       PRIMARY KEY (id)
   ) $charset_collate;";
 

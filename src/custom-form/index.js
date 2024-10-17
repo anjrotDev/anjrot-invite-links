@@ -1,13 +1,11 @@
-import { registerBlockType, getBlockType } from "@wordpress/blocks";
+import { registerBlockType } from "@wordpress/blocks";
 import "./style.scss";
 import Edit from "./edit";
-import Save from "./save";
+import save from "./save";
 import metadata from "./block.json";
 
-if (!getBlockType(metadata.name)) {
-	registerBlockType(metadata.name, {
-		title: metadata.title,
-		edit: Edit,
-		save: Save,
-	});
-}
+registerBlockType(metadata.name, {
+	...metadata,
+	edit: Edit,
+	save,
+});
