@@ -14,6 +14,7 @@ import {
 	ToggleControl,
 	SelectControl,
 } from "@wordpress/components";
+import { useEffect, useState } from "@wordpress/element";
 
 const Edit = (props) => {
 	const { attributes, setAttributes } = props;
@@ -41,7 +42,18 @@ const Edit = (props) => {
 		emailTo,
 		emailCc,
 		emailSubject,
+		apiEndpoint,
 	} = attributes;
+
+	const [endpoints, setEndpoints] = useState([]);
+
+	useEffect(() => {
+		// Fetch the endpoints from the server
+		wp.apiFetch({ path: "/wp/v2/settings" }).then((settings) => {
+			const savedEndpoints = settings.anjrot_invite_links_api_endpoints || [];
+			setEndpoints(savedEndpoints);
+		});
+	}, []);
 
 	const blockProps = useBlockProps({
 		style: {
@@ -232,9 +244,26 @@ const Edit = (props) => {
 								label: __("Send to API", "anjrot-invite-links"),
 								value: "sendToAPI",
 							},
+							{
+								label: __("Custom API Endpoint", "anjrot-invite-links"),
+								value: "apiEndpoint",
+							},
 						]}
 						onChange={(value) => setAttributes({ submitAction: value })}
 					/>
+					{submitAction === "apiEndpoint" && (
+						<SelectControl
+							label={__("Select API Endpoint", "anjrot-invite-links")}
+							value={apiEndpoint}
+							options={endpoints.map((endpoint) => ({
+								label: endpoint,
+								value: endpoint,
+							}))}
+							onChange={(newEndpoint) =>
+								setAttributes({ apiEndpoint: newEndpoint })
+							}
+						/>
+					)}
 				</PanelBody>
 			</InspectorControls>
 

@@ -98,6 +98,10 @@
     "emailSubject": {
       "type": "string",
       "default": "New form submission"
+    },
+    "apiEndpoint": {
+      "type": "string",
+      "default": ""
     }
   },
 	"supports": {

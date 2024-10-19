@@ -3,3 +3,17 @@
 	max-width: 100%;
 	box-sizing: border-box;
 }
+
+.custom-form-container button[type="submit"] {
+	cursor: pointer;
+	transition: background-color 0.3s ease; /* Efecto de transición */
+}
+
+.custom-form-container button[type="submit"]:hover {
+	background-color: #0056b3; /* Cambia el color al pasar el ratón */
+}
+
+.custom-form-container button[type="submit"]:disabled {
+	cursor: not-allowed;
+	background-color: #cccccc; /* Color del botón deshabilitado */
+}

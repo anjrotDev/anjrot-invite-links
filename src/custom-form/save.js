@@ -26,6 +26,7 @@ const Save = (props) => {
 		emailTo,
 		emailCc,
 		emailSubject,
+		apiEndpoint,
 	} = attributes;
 
 	const blockProps = useBlockProps.save({
@@ -62,6 +63,7 @@ const Save = (props) => {
 				data-email-to={emailTo}
 				data-email-cc={emailCc}
 				data-email-subject={emailSubject}
+				data-api-endpoint={apiEndpoint}
 			>
 				<h2 style={{ textAlign, color: textColor }}>{headingText}</h2>
 				<InnerBlocks.Content />

@@ -2,7 +2,6 @@ console.log("Script is running"); // Añade esta línea al principio del archivo
 
 (function () {
 	function initForms() {
-		console.log("initForms function called");
 		if (typeof anjrotInviteLinks === "undefined") {
 			console.error(
 				"anjrotInviteLinks is not defined. Form submission may not work correctly.",
@@ -14,28 +13,39 @@ console.log("Script is running"); // Añade esta línea al principio del archivo
 			form.addEventListener("submit", function (event) {
 				event.preventDefault();
 				const submitAction = this.dataset.submitAction;
-				console.log("Submit action:", submitAction); // Añade este log
+				const apiEndpoint = this.dataset.apiEndpoint; // Obtener el endpoint del dataset
 
 				// Recopilar los datos del formulario
 				const formData = new FormData(this);
 				formData.append("action", "anjrot_submit_form");
 				formData.append("_wpnonce", anjrotInviteLinks.nonce);
-				formData.append("submitAction", submitAction); // Añade esta línea
+				formData.append("submitAction", submitAction);
 				formData.append("emailTo", this.dataset.emailTo);
 				formData.append("emailCc", this.dataset.emailCc);
 				formData.append("emailSubject", this.dataset.emailSubject);
 
-				console.log("Email To:", this.dataset.emailTo); // Añade este log para depuración
+				// Deshabilitar el botón y mostrar efecto de carga
+				const submitButton = this.querySelector('button[type="submit"]');
+				submitButton.disabled = true;
+				submitButton.textContent = "Enviando...";
 
-				if (submitAction === "sendEmail" || submitAction === "sendToAPI") {
+				let endpoint = anjrotInviteLinks.ajaxUrl; // Default endpoint
+				if (submitAction === "apiEndpoint") {
+					endpoint = apiEndpoint; // Use custom endpoint if selected
+				}
+
+				if (
+					submitAction === "sendEmail" ||
+					submitAction === "sendToAPI" ||
+					submitAction === "apiEndpoint"
+				) {
 					// Enviar los datos del formulario al servidor
-					fetch(anjrotInviteLinks.ajaxUrl, {
+					fetch(endpoint, {
 						method: "POST",
 						body: formData,
 					})
 						.then((response) => response.json())
 						.then((data) => {
-							console.log("Server response:", data); // Añade este log
 							if (data.success) {
 								this.innerHTML = `<div class="confirmation-message">${this.dataset.confirmationMessage}</div>`;
 							} else {
@@ -45,6 +55,11 @@ console.log("Script is running"); // Añade esta línea al principio del archivo
 						.catch((error) => {
 							console.error("Error:", error);
 							this.innerHTML = `<div class="error-message">An error occurred. Please try again later.</div>`;
+						})
+						.finally(() => {
+							// Rehabilitar el botón y restablecer el texto
+							submitButton.disabled = false;
+							submitButton.textContent = "Enviar";
 						});
 				} else if (submitAction === "showMessage") {
 					this.innerHTML = `<div class="confirmation-message">${this.dataset.confirmationMessage}</div>`;
