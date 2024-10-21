@@ -13,7 +13,9 @@ if ( isset( $_POST['generate_link'] ) ) {
     $page_id = $_POST['protected_page'];
     $uses_remaining = isset($_POST['uses_remaining']) ? intval($_POST['uses_remaining']) : -1;
     $redirect_url = isset($_POST['redirect_url']) ? esc_url_raw($_POST['redirect_url']) : '';
-    
+    $internal_redirect_page = isset($_POST['internal_redirect_page']) ? intval($_POST['internal_redirect_page']) : 0; // Nueva variable
+
+    // Guardar la página protegida
     $wpdb->replace( 
         $table_name_pages, 
         array( 
@@ -26,8 +28,9 @@ if ( isset( $_POST['generate_link'] ) ) {
     $wpdb->insert( $table_name_links, array( 
         'uuid' => $uuid, 
         'uses_remaining' => $uses_remaining, 
-        'page_id' => $page_id, 
-        'uses_quantity' =>  $uses_remaining,
+        'page_id' => $page_id,  // Página protegida
+        'internal_redirect_page' => $internal_redirect_page, // Nueva columna para redirección interna
+        'uses_quantity' => $uses_remaining,
         'redirect_url' => $redirect_url
     ) );
 }
@@ -78,6 +81,18 @@ $links = $wpdb->get_results("SELECT * FROM $table_name_links");
                     <input type="url" name="redirect_url" id="redirect_url" style="width: 100%;">
                 </td>
             </tr>
+            <tr>
+                <th scope="row"><label for="internal_redirect_page">Internal Redirect Page:</label></th>
+                <td>
+                    <select name="internal_redirect_page" id="internal_redirect_page">
+                        <option value="0"><?php _e('None (leave empty for no internal redirect)', 'anjrot-invite-links'); ?></option>
+                        <?php foreach ( $pages as $page ): ?>
+                            <option value="<?php echo $page->ID; ?>"><?php echo $page->post_title; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <p class="description"><?php _e('Select an internal page to redirect to.', 'anjrot-invite-links'); ?></p>
+                </td>
+            </tr>
         </table>
         <p class="submit">
             <input type="submit" name="generate_link" class="button button-primary" value="Generate Invite Link">
@@ -95,12 +110,14 @@ $links = $wpdb->get_results("SELECT * FROM $table_name_links");
                 <th>Uses Remaining</th>
                 <th>Used</th>
                 <th>Redirect URL</th>
+                <th>Internal Redirect Page</th> <!-- Nueva columna -->
                 <th>Action</th>
             </tr>
         </thead>
         <tbody>
             <?php foreach ( $links as $link ): 
                 $page_title = get_the_title($link->page_id);
+                $internal_redirect_page_title = $link->internal_redirect_page ? get_the_title($link->internal_redirect_page) : 'None';
                 ?>
                 <tr>
                     <td><?php echo $link->id; ?></td>
@@ -110,6 +127,7 @@ $links = $wpdb->get_results("SELECT * FROM $table_name_links");
                     <td><?php echo $link->uses_remaining == -1 ? 'Unlimited' : max(0, $link->uses_remaining); ?></td>
                     <td><?php echo $link->used ? 'Yes' : 'No'; ?></td>
                     <td><?php echo $link->redirect_url ? $link->redirect_url : 'Home Page'; ?></td>
+                    <td><?php echo $internal_redirect_page_title; ?></td> <!-- Mostrar la página de redirección interna -->
                     <td>
                         <form method="post">
                             <input type="hidden" name="link_id" value="<?php echo $link->id; ?>">

@@ -158,6 +158,7 @@ add_action('wp_ajax_nopriv_anjrot_submit_form', 'anjrot_handle_form_submission')
 
 // Añade esta función para incluir la URL de AJAX en el script
 function anjrot_enqueue_custom_scripts() {
+    wp_deregister_script('anjrot-invite-links-view-script');
     wp_enqueue_script('anjrot-invite-links-view-script', plugins_url('build/custom-form/view.js', __FILE__), array('wp-element'), '1.0.0', true);
     wp_localize_script('anjrot-invite-links-view-script', 'anjrotInviteLinks', array(
         'ajaxUrl' => admin_url('admin-ajax.php'),
@@ -165,3 +166,16 @@ function anjrot_enqueue_custom_scripts() {
     ));
 }
 add_action('wp_enqueue_scripts', 'anjrot_enqueue_custom_scripts');
+
+add_action('rest_api_init', function () {
+    register_rest_route('anjrot/v1', '/api-endpoints', array(
+        'methods' => 'GET',
+        'callback' => 'anjrot_get_api_endpoints',
+        'permission_callback' => '__return_true',
+    ));
+});
+
+function anjrot_get_api_endpoints() {
+    $api_endpoints = get_option('anjrot_invite_links_api_endpoints', []);
+    return rest_ensure_response($api_endpoints);
+}
