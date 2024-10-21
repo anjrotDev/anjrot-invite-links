@@ -101,11 +101,23 @@ class WP_Invite_Link {
         global $wpdb;
         $table_name_links = $wpdb->prefix . 'invite_links';
         
+        // Modificar la consulta para incluir internal_redirect_page
         $link = $wpdb->get_row( $wpdb->prepare(
-            "SELECT redirect_url FROM $table_name_links WHERE uuid = %s",
+            "SELECT redirect_url, internal_redirect_page FROM $table_name_links WHERE uuid = %s",
             $uuid
         ));
-
+    
+        // Verificar si existe una redirección interna configurada
+        if ($link && $link->internal_redirect_page > 0) {
+            // Obtener la URL de la página interna
+            $internal_redirect_url = get_permalink($link->internal_redirect_page);
+            if ($internal_redirect_url) {
+                wp_redirect($internal_redirect_url);
+                exit;
+            }
+        }
+    
+        // Si no hay redirección interna, verificar redirección externa
         if ($link && !empty($link->redirect_url)) {
             wp_redirect($link->redirect_url);
         } else {

@@ -108,6 +108,5 @@
 	"editorScript": "file:./index.js",
 	"editorStyle": "file:./index.css",
 	"style": "file:./style-index.css",
-	"viewScript": "file:./view.js",
 	"allowedBlocks": ["core/columns", "anjrot-invite-links/text-input", "anjrot-invite-links/email-input"]
 }
